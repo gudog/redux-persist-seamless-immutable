@@ -12,22 +12,24 @@ const seamlessImmutableTransformCreator = ({ whitelistPerReducer = {}, blacklist
   return createTransform(
     // transform state coming from redux on its way to being serialized and stored
     (state, key) => {
-      const reducedStateKeys = Object.keys(state);
-      if (whitelistPerReducer[key]) {
-        reducedStateKeys.forEach(item => {
-          if (!whitelistPerReducer[key].includes(item)) {
-            state = state.without(item);
-          }
-        });
+      if (typeof state === 'object') {
+        const reducedStateKeys = Object.keys(state);
+        if (whitelistPerReducer[key]) {
+          reducedStateKeys.forEach(item => {
+            if (!whitelistPerReducer[key].includes(item)) {
+              state = state.without(item);
+            }
+          });
+        }
+        if (blacklistPerReducer[key]) {
+          reducedStateKeys.forEach(item => {
+            if (blacklistPerReducer[key].includes(item)) {
+              state = state.without(item);
+            }
+          });
+        }
+        return fromImmutable(state);
       }
-      if (blacklistPerReducer[key]) {
-        reducedStateKeys.forEach(item => {
-          if (blacklistPerReducer[key].includes(item)) {
-            state = state.without(item);
-          }
-        });
-      }
-      return fromImmutable(state);
     },
     // transform state coming from storage, on its way to be rehydrated into redux
     state => toImmutable(state)
